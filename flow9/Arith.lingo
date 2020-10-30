@@ -1,0 +1,13 @@
+expr = int | mul | add;
+
+int = digit + $e { IntConst(s2i($e))};
+mul = "(" ws expr:l ws "*" ws expr:r ws ")" { Mul(:l, :r) };
+add = "(" ws expr:l ws "+" ws expr:r ws ")" { Add(:l, :r) };
+addp = "("
+
+
+digit = '0'-'9';
+
+s = ws_+;
+ws = ws_*;
+ws_ = ' ' | '\\t' | '\\n' | '\\r';

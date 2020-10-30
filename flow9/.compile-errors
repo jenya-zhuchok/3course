@@ -1,0 +1,39 @@
+2020-10-10 09:50:40
+neko flow.n  .\compiler.flow
+C:/flow9/lib/runtime.flow:223: Exception from eval: I could not make native Native.getClipboardToCB: Could not find native getClipboardToCB in Native. Recompile flowrunner.hxml, flowflash.hxml
+C:/flow9/lib/runtime.flow:446: Exception from eval: I could not make native Native.getKeysList: Could not find native getKeysList in Native. Recompile flowrunner.hxml, flowflash.hxml
+2020-10-10 10:28:07
+neko flow.n  .\task6.flow
+task6.flow:26: Expected semicolon, not ,
+task6.flow:30: Expected semicolon, not pop
+task6.flow:40: Expected name or ), not [
+task6.flow:42: Expected name or ), not [
+task6.flow:11: File path for string: "#include RPN.lingo should be lowercase
+task6.flow:11: Could not read file for string: "#include RPN.lingo".  Give the path relative to flow/.
+
+2020-10-10 10:30:13
+neko flow.n  .\task6.flow
+task6.flow:26: Expected semicolon, not ,
+task6.flow:30: Expected semicolon, not pop
+task6.flow:40: Expected name or ), not [
+task6.flow:42: Expected name or ), not [
+task6.flow:11: File path for string: "#include RPN.lingo should be lowercase
+task6.flow:11: Could not read file for string: "#include RPN.lingo".  Give the path relative to flow/.
+
+2020-10-10 10:30:16
+neko flow.n  .\task6.flow
+task6.flow:26: Expected semicolon, not ,
+task6.flow:30: Expected semicolon, not pop
+task6.flow:40: Expected name or ), not [
+task6.flow:42: Expected name or ), not [
+task6.flow:11: File path for string: "#include RPN.lingo should be lowercase
+task6.flow:11: Could not read file for string: "#include RPN.lingo".  Give the path relative to flow/.
+
+2020-10-10 10:30:50
+neko flow.n  .\task6.flow
+task6.flow:26: Expected semicolon, not ,
+task6.flow:30: Expected semicolon, not pop
+task6.flow:40: Expected name or ), not [
+task6.flow:42: Expected name or ), not [
+task6.flow:11: File path for string: "#include RPN.lingo should be lowercase
+

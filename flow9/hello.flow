@@ -1,0 +1,11 @@
+import string;
+
+fun(arr: [int])->[string]
+{
+    
+}
+
+main()
+{
+    println("Hello, world");
+}

@@ -1,0 +1,33 @@
+import string;
+import ds/tree;
+
+pairs(i: int, a: [int], m: int) -> [Pair<int, int>]
+{
+    filter(mapi(a, \index, x -> Pair(i, index)), \p->(a[p.first]+a[p.second]) ==m);
+}
+
+pairs(i: int, a: [int], m: int) -> [Pair<int, int>]
+{
+    t = fold(a, makeTree(), \tree, x->setTree());
+    map(getTreeArrayValue(t, m-a[i], \idx->Pair(i, idx)))
+}
+
+inds(a: [int], m: int) -> [Pair <int, int>]
+{
+    indsr(a,0,m);
+}
+
+indsr(a:[int], i: int, m: int) -> [Pair<int, int>]
+{
+    if(i >= length(a)) []
+    else concat(pairs(i,a,m), indsr(a, i+1, m));
+}
+
+
+main()
+{
+    //ints = [3,1,4,1,5,9,2,6];
+    ints = [1,1,1,1,5,5,5,5];
+    println(inds(ints, 6));
+    quit(0);
+}

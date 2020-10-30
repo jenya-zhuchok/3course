@@ -1,0 +1,37 @@
+//strGlue2;
+import string;
+
+add(acc: int, arg: int) {acc+arg};
+
+fib(n: int) -> [int]
+{
+    if(n==0)        []
+    else if(n==1)   [0]
+    else if(n==2)   [0,1]
+    else
+    {
+        prev = fib(n-1);
+        concat(prev,[prev[n-2]+prev[n-3]]);
+    }            
+}
+
+fib_tail(n: int, acc: ref [int]) -> ref [int]
+{
+    if(n<=2)
+        acc
+    else
+    {
+        //fib_tail(n-1, concat(acc, [acc[length(acc)-1]+acc[length(acc)-2]]));
+        refArrayPush(acc, ^acc[length(^acc)-1]+^acc[length(^acc)-2]);
+        fib_tail(n-1, acc);
+    }
+}
+
+fibT(n:int)->[int]
+{
+    ^(fib_tail(n, ref [0,1]));
+}
+main()
+{
+    println(fibT(10));
+}

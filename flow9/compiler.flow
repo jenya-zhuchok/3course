@@ -1,0 +1,31 @@
+import string;
+
+Expr ::= IntConst, Mul, Add;
+IntConst: (value:int);
+Mul: (left: Expr, right: Expr);
+Add: (left: Expr, right: Expr);
+
+Calc(e: Expr) -> int{
+    switch (e : Expr) {
+        IntConst(c): c;
+        Mul(l, r): Calc(l) * Calc(r);
+        Add(l, r): Calc(l) + Calc(r);
+    }
+}
+
+Print(e: Expr) -> string{
+    switch (e : Expr) {
+        IntConst(c): i2s(c);
+        Mul(l, r): "("+Print(l)+"*"+Print(r)+")";
+        Add(l, r): "("+Print(l)+"+"+Print(r)+")";
+    }
+}
+
+
+main() -> void
+{
+    e = Mul(Add(IntConst(4), Mul(IntConst(2),IntConst(3))), IntConst(5));
+    println(Print(e));
+    println(Calc(e));
+    quit(0);
+}
