@@ -9,7 +9,7 @@ Mul: (l: Expr, r: Expr); //1*2*3*4
 Add: (l: Expr, r: Expr);
 
 Parse(s: string) -> Expr {
-    gram = "#include ex.gram";
+    gram = "#include ex.lingo";
     parsic(compilePegGrammar(gram), s, defaultPegActions)
 }
 
@@ -28,8 +28,6 @@ Print(e:Expr)->string{
         Add(l,r):"("+Print(l)+"+"+Print(r)+")";
     }
 }
-
-
 
 main(){
     exp = "((5  * 1) + (3 * 3 ))";
