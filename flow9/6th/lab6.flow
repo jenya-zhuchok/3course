@@ -1,0 +1,95 @@
+RpnExp :: = IntConst, Mul, Add;
+IntConst: (value: int);
+Mul: (); //1*2*3*4
+Add: ();
+
+Expr :: = IntConst2, Mul2, Add2;
+IntConst2: (value: int);
+Mul2: (); //1*2*3*4
+Add2: ();
+
+
+arithGramarOp: ref Maybe<[PegOp]> = ref None();
+
+initGrammar(){
+    onlyOnce(arithGramarOp, \ -> {
+        compilePegGrammar("#include RPN.lingo");
+    });
+}
+
+s2ar(s: string) -> Expr {
+    gram = "#include ex.lingo";
+    parsic(compilePegGrammar(gram), s, defaultPegActions)
+}
+
+pop(stack: ref [?])->?{
+    element=^stack[length(^stack)-1];
+    stack := subrange(^stack, 0, length(^stack)-1);
+    element;
+}
+
+Calc(e: [RpnExp])->int{
+    r = fold(e, ref[], \stack, exp ->{
+        switch(exp){
+            IntConst(c): refArrayPush(stack, c);
+            Mul(): refArrayPush(stack, pop(stack)*pop(stack));
+            Add(): refArrayPush(stack), pop(stack)+pop(stack);
+        };
+        stack;
+    })
+    pop(r);
+};
+
+Parse(source:string)->[RpnExp]{
+    parsic(initGrammar(), source,defaultPegActions);
+}
+
+//ar2rpn(Expr)->[RpnExp]{}
+rpn2ar([e: RpnExp])->Expr{
+    fold(e, [], \stack, exp->{
+        switch (exp) {
+            
+        }
+    })
+}
+
+Calc(e:Expr)->int{
+    switch (e : Expr) {
+    IntConst(c):c;
+    Mul(l,r):Calc(l)*Calc(r);
+    Add(l,r):Calc(l)+Calc(r);
+    }
+}
+
+Print(e:Expr)->string{
+    switch (e : Expr) {
+        IntConst(c):i2s(c);
+        Mul(l,r):Print(l)+"*"+Print(r);
+        Add(l,r):"("+Print(l)+"+"+Print(r)+")";
+    }
+}
+
+//str2rpn(String)->[RpnExp]{}
+rpnCalc(e: [RpnExp])->int{
+    fold(e, [], \stack, exp->{
+        switch (exp) {
+            IntConst(c): refArrayPush(stack, c);
+            Mul(): refArrayPush(stack, pop(stack)*pop(stack));
+            Add(): refArrayPush(stack), pop(stack)+pop(stack);
+        }
+        stack;
+    })
+    pop(r);
+}
+
+
+main(){
+    exp = "((5 * 1) + (3 * 3 ))";
+    print(s2ar(exp));
+   /* rpn = "1 2 3 4 + * +";
+    result = Parse(rpn);
+    println(result);
+    printn(Print(result));
+    println(Calc(result));
+    quit(0);*/
+}
