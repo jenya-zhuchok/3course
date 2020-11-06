@@ -1,7 +1,3 @@
-import java.util.ArrayList;
-
-import static java.lang.Double.NEGATIVE_INFINITY;
-import static java.lang.Double.POSITIVE_INFINITY;
 
 public class Main {
 
@@ -21,9 +17,10 @@ public class Main {
 
 
     public static void main(String[] args) {
-        double[] a = new double[]{4, -2, 0, 0};
+        double[] a = new double[]{2, 4, 1, -2};
+        if (a.length != 4) return;
         print(a);
-        Dichotomy method = new Dichotomy(a,0.00001, 0.1);
+        Dichotomy method = new Dichotomy(a,0.000001, 0.1);
         method.print_answers();
     }
 

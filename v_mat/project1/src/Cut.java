@@ -13,9 +13,10 @@ public  class Cut{
     public double getA() { return a; }
     public double getB() { return b; }
 
-    public double getMax() { return Math.max(a, b);}
-    public double getMin() { return Math.min(a, b);}
+    public double getMax() { return Math.max(a, b); }
+    public double getMin() { return Math.min(a, b); }
 
-    public double midle(){return (a + b)/2; }
+    public double midle() { return (a + b)/2; }
+    public double dist() { return getMax() - getMin(); }
 }
 

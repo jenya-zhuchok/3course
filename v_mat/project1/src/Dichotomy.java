@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static java.lang.Double.POSITIVE_INFINITY;
@@ -8,7 +9,7 @@ public class Dichotomy {
     private double eps = 0.00001;
     private double step = 0.1;
 
-    private ArrayList<Double> answ;
+    private ArrayList<Double> answs;
     private ArrayList<Cut> cuts;
 
 
@@ -16,24 +17,50 @@ public class Dichotomy {
     {
         this.eps = eps;
         this.step = step;
+
+        answs = new ArrayList<Double>();
+        cuts = new ArrayList<Cut>();
+
         find_distances(a);
+        find_answs(a);
     }
 
     public void print_answers(){
-
+        for(double ans: answs)
+            System.out.println("x = " + ans);
     }
 
     private void d_less_zero(double[] a)
     {
         double tmp = calc(a, 0);
         if (Math.abs(tmp) < eps) {
-            answ.add(tmp);
+            answs.add(tmp);
             return;
         }
+        ArrayList<Cut> cutstmp = new ArrayList<Cut>();
         if(tmp > 0)
-            cuts.add(new Cut(0, POSITIVE_INFINITY));
+            cutstmp.add(new Cut(0, POSITIVE_INFINITY));
         else
-            cuts.add(new Cut(NEGATIVE_INFINITY, 0));
+            cutstmp.add(new Cut(NEGATIVE_INFINITY, 0));
+
+        localdist(cutstmp);
+
+    }
+
+    private void localdist(ArrayList<Cut> infcuts){
+        for(Cut c: infcuts){
+            double tmp = 0.0;
+            if(c.getMax() == POSITIVE_INFINITY)
+                for(double i = 0; i < POSITIVE_INFINITY - step; i+=step){
+                    cuts.add(new Cut(i, i + step));
+                }
+            if(c.getMin() == NEGATIVE_INFINITY)
+                for(double i = 0; i > NEGATIVE_INFINITY + step; i-=step){
+                    cuts.add(new Cut(i, i - step));
+
+                }
+        }
+
     }
 
     private  void d_more_zero(double d, double[] a, double[] b){
@@ -44,40 +71,72 @@ public class Dichotomy {
         double tmp1 = calc(a, x1);
         double tmp2 = calc(a, x2);
 
-        if (tmp1 < -eps & tmp2 < -eps) // & or && ?
-            cuts.add(new Cut(x2, POSITIVE_INFINITY));
+        ArrayList<Cut> cutstmp = new ArrayList<Cut>();
 
-        if (Math.abs(x1) < eps & x2 < -eps){
-            answ.add(x1);
-            cuts.add(new Cut(x2, POSITIVE_INFINITY));
+        //if(Math.abs(x1) < eps) answs.add(x1);
+        //if(Math.abs(x2) < eps) answs.add(x2);
+
+        if (tmp1 < -eps && tmp2 < -eps) // & or && ?
+            cutstmp.add(new Cut(x2, POSITIVE_INFINITY));
+
+        if (Math.abs(x1) < eps && x2 < -eps){
+            answs.add(x1);
+            cutstmp.add(new Cut(x2, POSITIVE_INFINITY));
         }
 
-        if(tmp1 > eps & tmp2 < -eps){
-            cuts.add(new Cut(NEGATIVE_INFINITY, x1));
+        if(tmp1 > eps && tmp2 < -eps){
+            cutstmp.add(new Cut(NEGATIVE_INFINITY, x1));
             cuts.add(new Cut(x1, x2));
-            cuts.add(new Cut(x2, POSITIVE_INFINITY));
+            cutstmp.add(new Cut(x2, POSITIVE_INFINITY));
         }
 
-        if(tmp1 > eps & eps > Math.abs(tmp2)){
-            answ.add(x2);
-            cuts.add(new Cut(NEGATIVE_INFINITY, x1));
+        if(tmp1 > eps && eps > Math.abs(tmp2)){
+            answs.add(x2);
+            cutstmp.add(new Cut(NEGATIVE_INFINITY, x1));
         }
 
-        if(tmp1 > eps & tmp2 > eps)
-            cuts.add(new Cut (NEGATIVE_INFINITY, x1));
+        if(tmp1 > eps && tmp2 > eps)
+            cutstmp.add(new Cut (NEGATIVE_INFINITY, x1));
+
+        localdist(cutstmp);
     }
 
-    private void find_distances(double[] a)
-    {
-        if(a.length != 4) return;
+    private void find_distances(double[] a) {
         double[] b = dif(a);
         double d = D(b);
         if(d < 0) d_less_zero(a);
         if(d > 0) d_more_zero(d, a, b);
-        if(d == 0) answ.add((-b[1])/(2*b[0]));
+        if(d == 0)
+            if(b[0] == 0.0)
+                answs.add(0.0);
+            else
+                answs.add((-b[1])/(2*b[0]));
 
     }
 
+    private void find_answs(double[] a){
+        for(Cut cut : cuts)
+            while(cut.dist() < eps)
+            {
+                double tmp = calc(a,cut.midle());
+
+                if(Math.abs(tmp) < eps){
+                    answs.add(cut.midle());
+                    break;
+                }
+
+                if(tmp > 0){
+                    cut.setB(cut.getMax());
+                    cut.setA(cut.midle());
+                }
+
+                if(tmp < 0){
+                    cut.setA(cut.getMin());
+                    cut.setB(cut.midle());
+                }
+
+            }
+    }
 
     private double calc(double[] a, double x){
         double req = 0;
