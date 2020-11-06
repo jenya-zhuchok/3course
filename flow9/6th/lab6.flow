@@ -85,7 +85,7 @@ Calc(e:Expr)->int{
 Print(e:Expr)->string{
     switch (e : Expr) {
         IntConst(c):i2s(c);
-        Mul(l,r):Print(l)+"*"+Print(r);
+        Mul(l,r):"("+Print(l)+"*"+Print(r)+")";
         Add(l,r):"("+Print(l)+"+"+Print(r)+")";
     }
 }
