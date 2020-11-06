@@ -1,12 +1,12 @@
-RpnExp :: = IntConst, Mul, Add;
-IntConst: (value: int);
-Mul: (); //1*2*3*4
-Add: ();
+ExprRNP ::= IntConstRNP, MulRNP, AddRNP;
+IntConstRNP: (value: int);
+MulRNP: (); //1*2*3*4
+AddRNP: ();
 
-Expr :: = IntConst2, Mul2, Add2;
-IntConst2: (value: int);
-Mul2: (); //1*2*3*4
-Add2: ();
+Expr ::= IntConst, Mul, Add;
+IntConst: (value: int);
+Mul: (l: Expr, r: Expr); //1*2*3*4
+Add: (l: Expr, r: Expr); 
 
 
 arithGramarOp: ref Maybe<[PegOp]> = ref None();
@@ -28,27 +28,48 @@ pop(stack: ref [?])->?{
     element;
 }
 
-Calc(e: [RpnExp])->int{
+Calc(e: [ExprRNP])->int{
     r = fold(e, ref[], \stack, exp ->{
         switch(exp){
-            IntConst(c): refArrayPush(stack, c);
-            Mul(): refArrayPush(stack, pop(stack)*pop(stack));
-            Add(): refArrayPush(stack), pop(stack)+pop(stack);
+            IntConstRNP(c): refArrayPush(stack, c);
+            MulRNP(): refArrayPush(stack, pop(stack)*pop(stack));
+            AddRNP(): refArrayPush(stack), pop(stack)+pop(stack);
         };
         stack;
     })
     pop(r);
 };
 
-Parse(source:string)->[RpnExp]{
+Parse(source:string)->[ExprRNP]{
     parsic(initGrammar(), source,defaultPegActions);
 }
 
-//ar2rpn(Expr)->[RpnExp]{}
-rpn2ar([e: RpnExp])->Expr{
+ar2rpn(e: Expr)->[ExprRNP]{  //My
+    fold(e, ref[], \stack, exp ->{ //what is fold?
+        switch (exp) {
+        IntConst(c): refArrayPush(stack, IntConstRNP(c));
+        Mul(l,r):
+        {
+            ar2rpn(l);
+            ar2rpn(r);
+            refArrayPush(stack, MulRNP())  
+        }
+        Add(l,r):     
+       {
+            ar2rpn(l);
+            ar2rpn(r);
+            refArrayPush(stack, AddRNP())  
+        }
+    }
+}
+
+
+rpn2ar([e: ExprRNP])->Expr{ //My
     fold(e, [], \stack, exp->{
         switch (exp) {
-            
+            IntConst(c): IntConst(pop(stack));
+            MulRNP():  Mul(rpn2ar(pop(stack)), rpn2ar(pop(stack)));
+            AddRNP():  Add(rpn2ar(pop(stack)), rpn2ar(pop(stack)));   
         }
     })
 }
@@ -69,8 +90,8 @@ Print(e:Expr)->string{
     }
 }
 
-//str2rpn(String)->[RpnExp]{}
-rpnCalc(e: [RpnExp])->int{
+//str2rpn(String)->[ExprRNP]{}
+rpnCalc(e: [ExprRNP])->int{
     fold(e, [], \stack, exp->{
         switch (exp) {
             IntConst(c): refArrayPush(stack, c);
