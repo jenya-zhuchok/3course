@@ -1,0 +1,7 @@
+s = add | mul | int | ws | sub;
+add = ws "(" ws s:l ws "+" ws s:r ws ")" ws {Add(:l, :r)};
+sub = ws "(" ws s:l ws "-" ws s:r ws ")" ws {Sub(:l, :r)};
+mul = ws "(" ws s:l ws "*" ws s:r ws ")" ws {Mul(:l, :r)};
+int = digit + $s{IntConst(s2i($s))};
+digit='0'-'9';
+ws=(' ' | '\t' | '\n' | '\r')*;
