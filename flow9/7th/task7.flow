@@ -1,11 +1,12 @@
 import runtime;
 import string;
 import lingo/pegcode/driver;
+import /math/math;
 
 
-Expr ::= IntConst, FloatConst, Neg, Add, Sub, Mul, Div;
-IntConst: (value: int);
-FloatConst: (integer: int, fractional:int);
+Expr ::= IntConst, Rational, Neg, Add, Sub, Mul, Div;
+IntConst: (v: int);
+Rational: (i: int, d:int);
 Neg: (value: Expr);
 Add: (l: Expr, r: Expr);
 Sub: (l: Expr, r: Expr);
@@ -17,22 +18,53 @@ Parse(s: string) -> Expr {
     parsic(compilePegGrammar(gram), s, defaultPegActions)
 }
 
-/*Calc(e:Expr)->int{
+i2rat(i: IntConst) -> Rational {
+    Rational(i.v, 1);
+}
+
+ratMul(l:Rational, r:Rational) -> Rational {
+    i = l.i*r.i;
+    d = l.d*r.d;
+    Rational(i/gcd(n, d), d/gcd(n, d));
+}
+
+ratAdd(l:Rational, r:Rational) -> Rational {
+    i = l.i*r.d + r.i*l.d;
+    d = l.d*r.d;
+    Rational(i/gcd(n, d), d/gcd(n, d));
+}
+
+ratSub(l:Rational, r:Rational) -> Rational {
+    i = l.i*r.d - r.i*l.d;
+    d = l.d*r.d;
+    Rational(i/gcd(n, d), d/gcd(n, d));
+}
+
+ratDiv(l:Rational, r:Rational) -> Rational {
+    i = l.i*r.d;
+    d = l.d*r.i;
+    Rational(i/gcd(n, d), d/gcd(n, d));
+}
+
+ratNeg(r:Rational) -> Rational {
+    Rational(0 - r.i, r.d);
+}
+
+Calc(e:Expr)-> Rational {
     switch (e : Expr) {
-    IntConst(c):c;
-    FloatConst(i,f):
-    Neg(c):0 - Calc(c);
-    Add(l,r):Calc(l)+Calc(r);
-    Sub(l,r):Calc(l)-Calc(r);
-    Mul(l,r):Calc(l)*Calc(r);
-    Div(l,r):Calc(i)/Calc(r); 
+    IntConst(c):    i2rat(c);
+    Neg(c):     ratNeg(Calc(c));
+    Add(l,r):   ratAdd(Calc(l), Calc(r));
+    Sub(l,r):   ratSub(Calc(l), Calc(r));
+    Mul(l,r):   ratMul(Calc(l), Calc(r));
+    Div(l,r):   ratDiv(Calc(i), Calc(r)); 
     }
-}*/
+}
 
 Print(e:Expr)->string{
     switch (e : Expr) {
         IntConst(c):i2s(c);
-        FloatConst(i,f): i2s(i)+","+i2s(f);
+        Rational(i,f): i2s(i)+","+i2s(f);
         Neg(c): "-"+Print(c);
         Add(l,r): "("+Print(l)+"+"+Print(r)+")";
         Sub(l,r): "("+Print(l)+"-"+Print(r)+")";
@@ -42,7 +74,7 @@ Print(e:Expr)->string{
 }
 
 main(){
-    //exp = Neg(Add(Mul(IntConst(3), Add(IntConst(4), Neg(FloatConst(2, 5)))), Sub(IntConst(2), IntConst(6))));
+    //exp = Neg(Add(Mul(IntConst(3), Add(IntConst(4), Neg(Rational(2, 5)))), Sub(IntConst(2), IntConst(6))));
    // exp = Neg(IntConst(2));
     e = "(4+4)";
     exp = Parse(e);
