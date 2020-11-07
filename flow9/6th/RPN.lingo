@@ -1,0 +1,6 @@
+s = add | mul | int | ws;
+add = ws "+" ws {AddRNP()};
+mul = ws "*" ws {MulRNP()};
+int = digit+$s ws {IntConstRPN(s2i($s))};
+digit='0'-'9';
+ws=(' ' | '\t' | '\n' | '\r')*;

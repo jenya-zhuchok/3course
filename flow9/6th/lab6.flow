@@ -17,6 +17,10 @@ initGrammar(){
     });
 }
 
+s2rnp(source:string)->[ExprRNP]{
+    parsic(initGrammar(), source,defaultPegActions);
+}
+
 s2ar(s: string) -> Expr {
     gram = "#include ex.lingo";
     parsic(compilePegGrammar(gram), s, defaultPegActions)
@@ -33,16 +37,14 @@ Calc(e: [ExprRNP])->int{
         switch(exp){
             IntConstRNP(c): refArrayPush(stack, c);
             MulRNP(): refArrayPush(stack, pop(stack)*pop(stack));
-            AddRNP(): refArrayPush(stack), pop(stack)+pop(stack);
+            AddRNP(): refArrayPush(stack, pop(stack)+pop(stack));
         };
         stack;
     })
     pop(r);
 };
 
-Parse(source:string)->[ExprRNP]{
-    parsic(initGrammar(), source,defaultPegActions);
-}
+
 
 ar2rpn(e: Expr)->[ExprRNP]{  //My
     fold(e, ref[], \stack, exp ->{ //what is fold?
@@ -50,22 +52,22 @@ ar2rpn(e: Expr)->[ExprRNP]{  //My
         IntConst(c): refArrayPush(stack, IntConstRNP(c));
         Mul(l,r):
         {
+            refArrayPush(stack, MulRNP())  
             ar2rpn(l);
             ar2rpn(r);
-            refArrayPush(stack, MulRNP())  
         }
         Add(l,r):     
        {
+            refArrayPush(stack, AddRNP())  
             ar2rpn(l);
             ar2rpn(r);
-            refArrayPush(stack, AddRNP())  
         }
     }
 }
 
 
-rpn2ar([e: ExprRNP])->Expr{ //My
-    fold(e, [], \stack, exp->{
+rpn2ar(e: [ExprRNP])-> Expr { //My
+    fold(e, ref[], \stack, exp->{
         switch (exp) {
             IntConst(c): IntConst(pop(stack));
             MulRNP():  Mul(rpn2ar(pop(stack)), rpn2ar(pop(stack)));
@@ -80,9 +82,10 @@ Calc(e:Expr)->int{
     Mul(l,r):Calc(l)*Calc(r);
     Add(l,r):Calc(l)+Calc(r);
     }
-}
+}   
 
-Print(e:Expr)->string{
+
+ar2s(e:Expr)->string{
     switch (e : Expr) {
         IntConst(c):i2s(c);
         Mul(l,r):"("+Print(l)+"*"+Print(r)+")";
@@ -90,8 +93,11 @@ Print(e:Expr)->string{
     }
 }
 
-//str2rpn(String)->[ExprRNP]{}
-rpnCalc(e: [ExprRNP])->int{
+rpn2s(e: ExprRPN) -> string {
+
+}
+
+CalcRPN(e: [ExprRNP])->int{
     fold(e, [], \stack, exp->{
         switch (exp) {
             IntConst(c): refArrayPush(stack, c);
@@ -106,11 +112,13 @@ rpnCalc(e: [ExprRNP])->int{
 
 main(){
     exp = "((5 * 1) + (3 * 3 ))";
-    print(s2ar(exp));
+    println(s2ar(exp));
+   // println(rnp2s(ar2rnp(s2ar(exp))));
    /* rpn = "1 2 3 4 + * +";
     result = Parse(rpn);
     println(result);
     printn(Print(result));
     println(Calc(result));
     quit(0);*/
+    qouit(0);
 }
