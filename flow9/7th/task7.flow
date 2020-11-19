@@ -1,7 +1,7 @@
 import runtime;
 import string;
 import lingo/pegcode/driver;
-import /math/math;
+import math/math;
 
 
 Expr ::= IntConst, Rational, Neg, Add, Sub, Mul, Div;
@@ -13,37 +13,38 @@ Sub: (l: Expr, r: Expr);
 Mul: (l: Expr, r: Expr); 
 Div: (l: Expr, r: Expr);
 
+
 Parse(s: string) -> Expr {
     gram = "#include ex.lingo";
     parsic(compilePegGrammar(gram), s, defaultPegActions)
 }
 
-i2rat(i: IntConst) -> Rational {
-    Rational(i.v, 1);
+i2rat(i: int) -> Rational {
+    Rational(i, 1);
 }
 
 ratMul(l:Rational, r:Rational) -> Rational {
     i = l.i*r.i;
     d = l.d*r.d;
-    Rational(i/gcd(n, d), d/gcd(n, d));
+    Rational(i/gcd(i, d), d/gcd(i, d));
 }
 
 ratAdd(l:Rational, r:Rational) -> Rational {
     i = l.i*r.d + r.i*l.d;
     d = l.d*r.d;
-    Rational(i/gcd(n, d), d/gcd(n, d));
+    Rational(i/gcd(i, d), d/gcd(i, d));
 }
 
 ratSub(l:Rational, r:Rational) -> Rational {
     i = l.i*r.d - r.i*l.d;
     d = l.d*r.d;
-    Rational(i/gcd(n, d), d/gcd(n, d));
+    Rational(i/gcd(i, d), d/gcd(i, d));
 }
 
 ratDiv(l:Rational, r:Rational) -> Rational {
     i = l.i*r.d;
     d = l.d*r.i;
-    Rational(i/gcd(n, d), d/gcd(n, d));
+    Rational(i/gcd(i, d), d/gcd(i, d));
 }
 
 ratNeg(r:Rational) -> Rational {
@@ -53,19 +54,24 @@ ratNeg(r:Rational) -> Rational {
 Calc(e:Expr)-> Rational {
     switch (e : Expr) {
     IntConst(c):    i2rat(c);
+    Rational(l, r): Rational(l,r);
     Neg(c):     ratNeg(Calc(c));
     Add(l,r):   ratAdd(Calc(l), Calc(r));
     Sub(l,r):   ratSub(Calc(l), Calc(r));
     Mul(l,r):   ratMul(Calc(l), Calc(r));
-    Div(l,r):   ratDiv(Calc(i), Calc(r)); 
+    Div(l,r):   ratDiv(Calc(l), Calc(r)); 
     }
 }
 
 Print(e:Expr)->string{
     switch (e : Expr) {
         IntConst(c):i2s(c);
-        Rational(i,f): i2s(i)+","+i2s(f);
-        Neg(c): "-"+Print(c);
+        Rational(i,f): 
+            if 
+                (f == 1)  i2s(i)
+            else
+                "("+i2s(i)+"/"+i2s(f)+")";
+        Neg(c): "(-"+Print(c)+")";
         Add(l,r): "("+Print(l)+"+"+Print(r)+")";
         Sub(l,r): "("+Print(l)+"-"+Print(r)+")";
         Mul(l,r): "("+Print(l)+"*"+Print(r)+")";
@@ -74,18 +80,14 @@ Print(e:Expr)->string{
 }
 
 main(){
-    //exp = Neg(Add(Mul(IntConst(3), Add(IntConst(4), Neg(Rational(2, 5)))), Sub(IntConst(2), IntConst(6))));
-   // exp = Neg(IntConst(2));
-    e = "(4+4)";
-    exp = Parse(e);
-    println(Print(exp));
-   /* exp = "((5  * 1) + (3 * 3 ))";
+
+    exp = "((5  * 1) + (3 / (-3) ))";
     p_exp = Parse(exp);
     res = Calc(p_exp);
     
     println(exp);
     println(Print(p_exp));
-    println(res);
-   */
+    println(Print(res));
+
     quit(0);
 }
