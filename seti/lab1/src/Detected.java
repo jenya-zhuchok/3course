@@ -3,6 +3,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -75,10 +76,14 @@ public class Detected {
     private void printReceivedUUID(){
         long timeNow = System.currentTimeMillis();
 
+        ArrayList<UUID> removeList = new ArrayList<UUID>();
+
         for (HashMap.Entry<UUID, Long> elem : receivedUUID.entrySet())
             if (timeNow - elem.getValue() > UPDATE_TIMEOUT )
-                receivedUUID.remove(elem.getKey());
+                removeList.add(elem.getKey());
 
+         for (UUID id : removeList)
+             receivedUUID.remove(id);
 
         System.out.println("-------------------------------------------");
         System.out.println("Detected: \n");
