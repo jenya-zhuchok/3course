@@ -2,12 +2,14 @@ import runtime;
 import string;
 import lingo/pegcode/driver;
 import math/math;
+import ds/tree;
 
 
-Expr ::= IntConst, Rational, Neg, Add, Sub, Mul, Div;
+Expr ::= IntConst, Rational, Neg, Var, Add, Sub, Mul, Div;
 IntConst: (v: int);
 Rational: (i: int, d:int);
 Neg: (value: Expr);
+Var: (value: string);
 Add: (l: Expr, r: Expr);
 Sub: (l: Expr, r: Expr);
 Mul: (l: Expr, r: Expr); 
@@ -51,15 +53,21 @@ ratNeg(r:Rational) -> Rational {
     Rational(0 - r.i, r.d);
 }
 
-Calc(e:Expr)-> Rational {
+Calc(e:Expr, tree:Tree<string, Rational>)-> Maybe <Rational> {
     switch (e : Expr) {
     IntConst(c):    i2rat(c);
     Rational(l, r): Rational(l,r);
-    Neg(c):     ratNeg(Calc(c));
-    Add(l,r):   ratAdd(Calc(l), Calc(r));
-    Sub(l,r):   ratSub(Calc(l), Calc(r));
-    Mul(l,r):   ratMul(Calc(l), Calc(r));
-    Div(l,r):   ratDiv(Calc(l), Calc(r)); 
+    Neg(c):     Calc(c) ?? ratNeg(c) : None();
+    Add(l,r):   /*ratAdd(Calc(l), Calc(r));*/ maybeBind(Calc(l, tree), \ v1 -> maybeBind(Calc(r, tree), \ v2 -> ratAdd(v1, v2)));
+    Sub(l,r):   /*ratSub(Calc(l), Calc(r));*/ maybeBind(Calc(l, tree), \ v1 -> maybeBind(Calc(r, tree), \ v2 -> ratSub(v1, v2)));
+    Mul(l,r):   /*ratMul(Calc(l), Calc(r));*/ maybeBind(Calc(l, tree), \ v1 -> maybeBind(Calc(r, tree), \ v2 -> ratMul(v1, v2)));
+    Div(l,r):   /*ratDiv(Calc(l), Calc(r));*/ maybeBind(Calc(l, tree), \ v1 -> maybeBind(Calc(r, tree), \ v2 -> ratDiv(v1, v2)));
+    Var(s): {
+        switch(lookupTree(tree, s)) {
+            None() : None();
+            Some(v) : Some(v);
+            }
+        }
     }
 }
 
@@ -76,18 +84,23 @@ Print(e:Expr)->string{
         Sub(l,r): "("+Print(l)+"-"+Print(r)+")";
         Mul(l,r): "("+Print(l)+"*"+Print(r)+")";
         Div(l,r): "("+Print(l)+"/"+Print(r)+")"; 
+        Var(s): s;
     }
 }
 
 main(){
 
-    exp = "((5  * 1) + (3 / (-3) ))";
+    tree = makeTree();
+    setTree(tree, "x", i2rat(parse("10")));
+    
+
+    exp = "(-(- ((5  * 1) - (3 / (x + (-1)) ))))";
     p_exp = Parse(exp);
-    res = Calc(p_exp);
+    //res = Calc(p_exp);
     
     println(exp);
     println(Print(p_exp));
-    println(Print(res));
+    //println(Print(res));
 
     quit(0);
 }

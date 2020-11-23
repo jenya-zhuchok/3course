@@ -1,6 +1,8 @@
 s = add | mul | int | ws;
+
 add = ws "(" ws s:l ws "+" ws s:r ws ")" ws {Add(:l, :r)};
 mul = ws "(" ws s:l ws "*" ws s:r ws ")" ws {Mul(:l, :r)};
 int = digit + $s{IntConst(s2i($s))};
+
 digit='0'-'9';
 ws=(' ' | '\t' | '\n' | '\r')*;
