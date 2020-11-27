@@ -1,4 +1,4 @@
-s = neg | plus | sub | mult | div | var | int| ws;
+s = neg | plus | sub | mult | div | var | int | ws;
 
 plus = ws "(" ws  s:l ws "+" ws s:r ws ")" ws {Add(:l, :r)};
 sub = ws "(" ws s:l  ws "-" ws s:r ws ")" ws {Sub(:l, :r)};
