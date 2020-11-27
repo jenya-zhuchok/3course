@@ -25,3 +25,5 @@ hs_err_pid*
 #flow9 logs
 *.bytecode
 *.debug
+
+*.mp4
