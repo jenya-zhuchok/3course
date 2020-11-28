@@ -2,34 +2,20 @@ import runtime;
 import string;
 import lingo/pegcode/driver;
 
-
-ExprRNP ::= IntConstRNP, MulRNP, AddRNP;
-IntConstRNP: (value: int);
-MulRNP: (); //1*2*3*4
-AddRNP: ();
+ExprRPN ::= IntConstRPN, MulRPN, AddRPN;
+IntConstRPN: (value: int);
+MulRPN: (); 
+AddRPN: ();
 
 Expr ::= IntConst, Mul, Add;
 IntConst: (value: int);
-Mul: (l: Expr, r: Expr); //1*2*3*4
+Mul: (l: Expr, r: Expr); 
 Add: (l: Expr, r: Expr); 
-
-
-/*arithGramarOp: ref Maybe<[PegOp]> = ref None();
-
-initGrammar(){
-    onlyOnce(arithGramarOp, \ -> {
-        compilePegGrammar("#include RNP.lingo");
-    });
-}
-
-s2rnp(source:string)->[RNP]{
-    parsic(initGrammar(), source,defaultPegActions);
-}
 
 s2ar(s: string) -> Expr {
     gram = "#include ex.lingo";
     parsic(compilePegGrammar(gram), s, defaultPegActions)
-}*/
+}
 
 pop(stack: ref [?])->?{
     element=^stack[length(^stack)-1];
@@ -37,50 +23,28 @@ pop(stack: ref [?])->?{
     element;
 }
 
-CalcRNP(e: [ExprRNP])->int{
-    r = fold(e, ref[], \stack, exp ->{
-        switch(exp){
-            IntConstRNP(c): refArrayPush(stack, c);
-            MulRNP(): refArrayPush(stack, pop(stack)*pop(stack));
-            AddRNP(): refArrayPush(stack, pop(stack)+pop(stack));
-        };
-        stack;
-    })
-    pop(r);
-};
+ar2rpn(e: Expr)->[ExprRPN]{
+	switch (e) {
+		Add(l, r): concat(concat(ar2rpn(l), ar2rpn(r)), [AddRPN()]);
+		Mul(l, r): concat(concat(ar2rpn(l), ar2rpn(r)), [MulRPN()]);
+		IntConst(c): [IntConstRPN(c)];
+	}
 
-
-/*
-ar2rpn(e: Expr)->[ExprRNP]{  //My
-    fold(e, ref[], \stack, exp ->{ //what is fold?
-        switch (exp) {
-        IntConst(c): refArrayPush(stack, IntConstRNP(c));
-        Mul(l,r):
-        {
-            refArrayPush(stack, MulRNP())  
-            ar2rpn(l);
-            ar2rpn(r);
-        }
-        Add(l,r):     
-       {
-            refArrayPush(stack, AddRNP())  
-            ar2rpn(l);
-            ar2rpn(r);
-        }
-    }
 }
-}*/
 
+_rpn2ar(e: ref[ExprRPN])-> Expr { 
+    switch(pop(e))
+    {
+        AddRPN(): Add(_rpn2ar(e), _rpn2ar(e));
+        MulRPN(): Mul(_rpn2ar(e), _rpn2ar(e));
+        IntConstRPN(c) : IntConst(c);
+    }
 
-/*rpn2ar(e: [ExprRNP])-> Expr { //My
-    fold(e, ref[], \stack, exp->{
-        switch (exp) {
-            IntConst(c): IntConst(pop(stack));
-            MulRNP():  Mul(rpn2ar(pop(stack)), rpn2ar(pop(stack)));
-            AddRNP():  Add(rpn2ar(pop(stack)), rpn2ar(pop(stack)));   
-        }
-    })
-}*/
+}
+
+rpn2ar(e: [ExprRPN])-> Expr{
+    _rpn2ar(ref ar2rpn(_rpn2ar(ref e)));
+}
 
 Calc(e : Expr)->int{
     switch (e : Expr) {
@@ -90,6 +54,17 @@ Calc(e : Expr)->int{
     }
 }   
 
+CalcRPN(e: [ExprRPN])->int{
+    r = fold(e, ref[], \stack, exp ->{
+        switch(exp){
+            IntConstRPN(c): refArrayPush(stack, c);
+            MulRPN(): refArrayPush(stack, pop(stack)*pop(stack));
+            AddRPN(): refArrayPush(stack, pop(stack)+pop(stack));
+        };
+        stack;
+    })
+    pop(r);
+};
 
 ar2s(e:Expr)->string{
     switch (e : Expr) {
@@ -100,41 +75,32 @@ ar2s(e:Expr)->string{
 
 }
 
-rpn2s(e: Maybe<[ExprRNP]>) -> string {
+rpn2s(e: [ExprRPN]) -> string {
     
-		switch(e[1]) {
-			AddRNP() :  "+ " + rnp2s(e[2]);
-			MulRNP() :  "* " + rnp2s(e[2]);
-			IntConstRNP(a) : i2s(a) + " " + rnp2s(e[2]);
-            None(): "";
+    fold(e, "", \str, r -> {
+		switch(r) {
+			AddRPN():  str + "+ "; 
+    		MulRPN(): str + "* ";
+            IntConstRPN(a): str + i2s(a) + " ";
+			}
 		}
+	)
 }
-
-/*CalcRNP(e: [ExprRNP])->int{
-    fold(e, [], \stack, exp->{
-        switch (exp) {
-            IntConstRNP(c): refArrayPush(stack, c);
-            MulRNP(): refArrayPush(stack, pop(stack)*pop(stack));
-            AddRNP(): refArrayPush(stack, pop(stack)+pop(stack));
-        }
-        stack;
-    })
-    pop(r);
-}*/
-
 
 main(){
 
-    exp = [IntConstRNP(3),IntConstRNP(3), MulRNP()];
-    println(CalcRNP(exp));
-    //exp = "((5 * 1) + (3 * 3 ))";
-    //println(s2ar(exp));
-   // println(rnp2s(ar2rnp(s2ar(exp))));
-   /* rpn = "1 2 3 4 + * +";
-    result = Parse(rpn);
-    println(result);
-    printn(Print(result));
-    println(Calc(result));
-    quit(0);*/
+    strexp = "((8 * (4 + 1)) + 2)";
+    exp =s2ar(strexp);
+    println(ar2s(exp));
+    println(Calc(exp));
+
+    rpnexp = ar2rpn(exp);
+    println(rpn2s(rpnexp));
+    println(CalcRPN(rpnexp));
+
+    newexp = rpn2ar(rpnexp);
+    println(ar2s(newexp));
+    println(Calc(newexp));
+
     quit(0);
 }
