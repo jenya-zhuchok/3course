@@ -9,6 +9,7 @@ public class Snake {
 
     private LinkedList<Cell> body;
     private Direction look = Direction.right;
+    private int score = 1;
 
     Snake (){
         body = new LinkedList<Cell>();
@@ -26,6 +27,12 @@ public class Snake {
             body.add(c);
     }
 
+    public void setBody(ArrayList<Cell> cells )  {
+        for(Cell c : cells)
+            body.add(c);
+    }
+
+    public int getScore() { return score; }
 
     public void turnUp() { look = Direction.up; }
     public void turnDown() { look = Direction.down; }
@@ -36,12 +43,10 @@ public class Snake {
 
     public Cell getHead(){ return body.getFirst(); }
 
-    public boolean move(Cell cell){
+    public int move(Cell cell){
 
-        if(cell.isSnake()) {
+        if(cell.isSnake())
             death();
-            return false;
-        }
 
         if(cell.isFree()){
             body.removeLast().free();
@@ -52,12 +57,15 @@ public class Snake {
         if(cell.isFood()){
             cell.snake();
             body.push(cell);
+            score++;
         }
 
-        return true;
+        return body.size();
     }
 
-
-    public void death() { body.clear(); }
+    public void death() {
+        for (Cell cell : body)
+            cell.free();
+        body.clear(); }
 
 }

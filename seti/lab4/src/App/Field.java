@@ -1,9 +1,9 @@
 package App;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
-
-enum Obj { none, }
 
 public class Field {
 
@@ -16,11 +16,11 @@ public class Field {
     private int height = DEFAULT_HEIGHT;
 
     private int maxUsers = DEFULT_MAX_USERS;
-    private int foodCount = DEFAULT_FOOD;
+    private int maxFood = DEFAULT_FOOD;
+    private int foodCount = 0;
 
     private ArrayList<ArrayList<Cell>> field;
-    private ArrayList<Cell> foods;
-    private ArrayList<User> users;
+    private HashMap<User, Snake> users;
 
     private void createField(){
 
@@ -44,6 +44,7 @@ public class Field {
 
     Field (){
         createField();
+        addFood();
     }
 
     Field (int w, int h){
@@ -51,31 +52,68 @@ public class Field {
         height = h;
 
         createField();
+        addFood();
     }
 
-    Field (int w, int h, int users, int foods){
+    Field (int w, int h, int snakes, int foods){
         width = w;
         height = h;
 
-        if (users > 0)
-            maxUsers = users;
+        if (snakes > 0)
+            maxUsers = snakes;
         if (foods > 0)
-            foodCount = foods;
+            maxFood = foods;
 
         createField();
+        addFood();
     }
 
     private void addFood(){
-        Cell cell = findRandomFreeCell();
-        foods.add(cell);
+        while (foodCount < maxFood){
+            Cell cell = findRandomFreeCell();
+            cell.food();
+        }
     }
 
-    public boolean addUser(User u){
-        if (users.size() == maxUsers) return false;
+
+    //TODO:
+    // добавить возможность создавать змеек с более чем одной клеткой
+    public Snake addUser(User u){
+
+        if (users.size() >= maxUsers)
+            return null;
+
         Cell cell = findRandomFreeCell();
-        u.addCell(cell);
-        users.add(u);
-        return true;
+        Snake s = new Snake(cell);
+        users.put(u, s);
+
+        return s;
+    }
+
+
+    public void step() {
+        for(Map.Entry<User, Snake> entry : users.entrySet()){
+
+            Snake  s = entry.getValue();
+            Cell head = s.getHead();
+            Cell newHead = null;
+            
+            if(s.isDirection() == Direction.up)
+                newHead = getCell(head.getX(), (head.getY() + 1) % height);
+
+            if(s.isDirection() == Direction.down)
+                newHead = getCell(head.getX(), (head.getY() + height - 1) % height);
+
+
+            if(s.isDirection() == Direction.right)
+                newHead = getCell((head.getX() + 1) % width, head.getY());
+
+            if(s.isDirection() == Direction.left)
+                newHead = getCell((head.getX() + width - 1) % width, head.getY());
+
+            s.move(newHead);
+        }
+
     }
 
 }
