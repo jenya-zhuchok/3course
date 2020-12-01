@@ -1,22 +1,31 @@
 package App;
 
-import javax.swing.plaf.PanelUI;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 enum Direction { up, down, right, left };
 
-public class User {
+public class Snake {
 
-    private String name;
     private LinkedList<Cell> body;
     private Direction look = Direction.right;
 
-    User (String n){
-        name = n;
+    Snake (){
         body = new LinkedList<Cell>();
     }
 
-    public void  addCell(Cell cell){ body.add(cell); }
+    Snake(Cell cell)
+    {
+        body = new LinkedList<Cell>();
+        body.push(cell);
+    }
+
+    Snake(ArrayList<Cell> cells){
+        body = new LinkedList<Cell>();
+        for(Cell c : cells)
+            body.add(c);
+    }
+
 
     public void turnUp() { look = Direction.up; }
     public void turnDown() { look = Direction.down; }
@@ -25,8 +34,7 @@ public class User {
 
     public Direction isDirection() {return look; }
 
-    public Cell getHead(){return }
-
+    public Cell getHead(){ return body.getFirst(); }
 
     public boolean move(Cell cell){
 
