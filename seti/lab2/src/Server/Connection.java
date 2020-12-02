@@ -1,9 +1,7 @@
 package Server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.net.FileNameMap;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -65,6 +63,13 @@ public class Connection implements Runnable{
 
         try {
             fileName = getFileName();
+
+            File file  = new File("D:/repos/git/3_corse/3course/seti/lab2/uploads/" + fileName);
+            while(file.exists()){
+                fileName = "1" + fileName;
+                file  = new File("D:/repos/git/3_corse/3course/seti/lab2/uploads/" + fileName);
+            }
+
             fileSize = readFromSocket.readLong();
 
             fileOut = new FileOutputStream("D:/repos/git/3_corse/3course/seti/lab2/uploads/" + fileName);
