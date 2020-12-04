@@ -1,0 +1,202 @@
+import runtime;
+import string;
+import lingo/pegcode/driver;
+import math/math;
+import ds/tree;
+
+
+Expr ::= IntConst, Rational, Neg, Var, Add, Sub, Mul, Div;
+
+IntConst: (v: int);
+Rational: (i: int, d:int);
+Neg: (value: Expr);
+Var: (value: string);
+Add: (l: Expr, r: Expr);
+Sub: (l: Expr, r: Expr);
+Mul: (l: Expr, r: Expr); 
+Div: (l: Expr, r: Expr);
+
+
+Parse(s: string) -> Expr {
+    gram = "#include ex.lingo";
+    parsic(compilePegGrammar(gram), s, defaultPegActions)
+}
+
+i2rat(i: int) -> Rational {
+    Rational(i, 1);
+}
+
+ratMul(l:Maybe<Rational>, r:Maybe<Rational>) -> Maybe<Rational> {
+    switch(l){
+    None(): None();
+    Some(a): switch(r){
+        None(): None()
+        Some(b):{
+            i = a.i*b.i;
+            d = a.d*b.d;
+            Some(Rational(i/gcd(i, d), d/gcd(i, d)));
+            }
+        }
+    }
+}
+
+ratAdd(l:Maybe<Rational>, r:Maybe<Rational>) -> Maybe<Rational> {
+    switch(l){
+        None(): None();
+        Some(a): switch(r){
+            None(): None()
+            Some(b):{
+                i = a.i*b.d + b.i*a.d;
+                d = a.d*b.d;
+                Some(Rational(i/gcd(i, d), d/gcd(i, d)));
+            }
+        }
+    }  
+}
+
+ratSub(l:Maybe<Rational>, r:Maybe<Rational>) -> Maybe<Rational> {
+    switch(l){
+        None(): None();
+        Some(a): switch(r){
+            None(): None();
+            Some(b):{
+                i = a.i*b.d - b.i*a.d;
+                d = a.d*b.d;
+                Some(Rational(i/gcd(i, d), d/gcd(i, d)));
+            }
+        }
+    }  
+}
+
+ratDiv(l:Maybe<Rational>, r:Maybe<Rational>) -> Maybe<Rational> {
+    switch(l){
+        None(): None();
+        Some(a): switch(r){
+            None(): None();
+            Some(b):{
+                i = a.i*b.d;
+                d = a.d*b.i;
+                Some(Rational(i/gcd(i, d), d/gcd(i, d)));
+            }
+        }
+    } 
+}
+
+ratNeg(r:Maybe<Rational>) -> Maybe<Rational> {
+        switch(r){
+    None(): None();
+    Some(n): Some(Rational(0 - n.i, n.d));
+    }
+}
+
+Calc(e:Expr, tree:Tree<string, int>)-> Maybe <Rational> {
+    switch (e : Expr) {
+    IntConst(c):    Some(i2rat(c));
+    Rational(l, r): Some(Rational(l,r));
+    Neg(c):     maybeBind(Calc(c, tree), \ v1 -> ratNeg(Some(v1)));
+    Add(l,r):   maybeBind(Calc(l, tree), \ v1 -> maybeBind(Calc(r, tree), \ v2 -> ratAdd(Some(v1), Some(v2))));
+    Sub(l,r):   maybeBind(Calc(l, tree), \ v1 -> maybeBind(Calc(r, tree), \ v2 -> ratSub(Some(v1), Some(v2))));
+    Mul(l,r):   maybeBind(Calc(l, tree), \ v1 -> maybeBind(Calc(r, tree), \ v2 -> ratMul(Some(v1), Some(v2))));
+    Div(l,r):   maybeBind(Calc(l, tree), \ v1 -> maybeBind(Calc(r, tree), \ v2 -> ratDiv(Some(v1), Some(v2))));
+    Var(s): {
+        switch(lookupTree(tree, s)) {
+            None() : None();
+            Some(v) : Some(i2rat(v));
+            }
+        }
+    }
+}
+
+Print(e:Expr)->string{
+    switch (e : Expr) {
+        IntConst(c):i2s(c);
+        Rational(i,f): 
+            if 
+                (f == 1)  i2s(i)
+            else
+                "("+i2s(i)+"/"+i2s(f)+")";
+        Neg(c): "(-"+Print(c)+")";
+        Add(l,r): "("+Print(l)+"+"+Print(r)+")";
+        Sub(l,r): "("+Print(l)+"-"+Print(r)+")";
+        Mul(l,r): "("+Print(l)+"*"+Print(r)+")";
+        Div(l,r): "("+Print(l)+"/"+Print(r)+")"; 
+        Var(s): s;
+    }
+}
+
+SimpleAdd(l: Expr, r: Expr) -> Expr{
+    if(l == IntConst(0)) r
+        else if (r == IntConst(0)) l
+            else Add(l, r)
+}
+
+SimpleSub(l: Expr, r: Expr) -> Expr{
+    if(l == IntConst(0) && r == IntConst(0)) IntConst(0)
+        else if( l == r ) IntConst(0)
+            else if(l == IntConst(0)) Neg(r)
+                else if (r == IntConst(0)) l
+                    else Sub(l, r)
+}
+
+SimpleMul(l: Expr, r: Expr) -> Expr{
+    if( l == IntConst(0) || r == IntConst(0)) IntConst(0) 
+        else if(l == IntConst(1)) r
+            else if (r == IntConst(1)) l
+                else Mul(l, r)
+}
+
+SimpleDiv(l: Expr, r: Expr) -> Expr{
+    if (l == IntConst(0)) IntConst(0)
+        else if(r == IntConst(1)) l
+            else if ( l == r ) IntConst(1)  
+                else Div(l, r)
+}
+
+SimpleNeg(n: Expr) -> Expr{
+    if (n == IntConst(0)) IntConst(0)
+        else Neg(n)
+}
+
+SimpleRat(i: int, f: int) -> Expr{
+    if (i == 0) IntConst(0)
+        else if (f == 1) IntConst(i)
+            else Rational(i, f);
+}
+
+Simplify(e: Expr) -> Expr{
+    switch(e: Expr){
+        Add(l,r): SimpleAdd(Simplify(l), Simplify(r))
+        Sub(l,r): SimpleSub(Simplify(l), Simplify(r))
+        Mul(l,r): SimpleMul(Simplify(l), Simplify(r))
+        Div(l,r): SimpleDiv(Simplify(l), Simplify(r))
+        Neg(n): SimpleNeg(Simplify(n));
+        IntConst(c): IntConst(c);
+        Rational(i,f): SimpleRat(i, f);
+        Var(v): Var(v); 
+    }
+}
+
+main(){
+
+    tree = setTree(makeTree(), "x", 1);
+
+    exp = "((((1 * 0) + ((6- 6) * x))+ (4/ 1)) - (((x / 2)+ (0 * 3)) - 1))"
+    p_exp = Parse(exp);
+    println(Print(p_exp));
+    sp_exp = Simplify(p_exp);
+    println(Print(sp_exp));
+
+        switch(Calc(p_exp, tree))
+    {
+        None() : println("Wrong!");
+        Some(v) : println(Print(v))
+    }
+
+        switch(Calc(sp_exp, tree))
+    {
+        None() : println("Wrong!");
+        Some(v) : println(Print(v))
+    }
+
+    quit(0);
+}
