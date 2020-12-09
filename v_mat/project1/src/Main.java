@@ -17,11 +17,13 @@ public class Main {
 
 
     public static void main(String[] args) {
-        double[] a = new double[]{2, 4, 1, -2};
+        double[] a = new double[]{1, 1, 1, 0};
         if (a.length != 4) return;
+
         print(a);
-        Dichotomy method = new Dichotomy(a,0.000001, 0.1);
+        Dichotomy method = new Dichotomy(a,0.00001, 20000);
         method.print_answers();
+
     }
 
 }
