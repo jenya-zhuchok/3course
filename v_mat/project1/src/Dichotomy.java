@@ -9,6 +9,7 @@ public class Dichotomy {
 
     private ArrayList<Double> answs;
     private ArrayList<Cut> cuts;
+    private ArrayList<Cut> answ_cuts;
 
 
     Dichotomy(double[] a, double eps, double step)
@@ -18,15 +19,18 @@ public class Dichotomy {
 
         answs = new ArrayList<Double>();
         cuts = new ArrayList<Cut>();
+        answ_cuts = new ArrayList<Cut>();
 
         find_distances(a);
         find_answs(a);
     }
 
     public void print_answers(){
+
+        System.out.println("_________________________\nAnswers:");
         for(double ans: answs)
             System.out.println("x = " + ans);
-        for(Cut cut: cuts)
+        for(Cut cut: answ_cuts)
             System.out.println("x ∈ [ " + cut.getMin() + " ; " + cut.getMax() + "]");
     }
 
@@ -57,8 +61,8 @@ public class Dichotomy {
         double tmp1 = calc(a, x1);
         double tmp2 = calc(a, x2);
 
-        System.out.println("tmp1 = " + tmp1);
-        System.out.println("tmp2 = " + tmp2);
+        System.out.println("f(x1) = " + tmp1);
+        System.out.println("f(x2) = " + tmp2);
 
 
         if (tmp1 < -eps && tmp2 < -eps)
@@ -85,6 +89,7 @@ public class Dichotomy {
 
     }
 
+    // Ищет отрезки
     private void find_distances(double[] a) {
         double[] b = dif(a);
         double d = D(b);
@@ -97,44 +102,86 @@ public class Dichotomy {
             else
                 answs.add((-b[1])/(2*b[0]));
 
+        System.out.println("_________________________\nCuts:");
+        for(Cut cut: cuts)
+            System.out.println("x ∈ [ " + cut.getMin() + " ; " + cut.getMax() + "]");
     }
 
+    // Ищет точки в полученных ЛОКАЛЬНЫХ отрезках
+    /*private boolean locale(double[] a, Cut c) {
+        while (c.dist() > eps) {
+            double tmp = calc(a, c.midle());
+
+            if (tmp > 0) {
+                c.setB(c.getMax());
+                c.setA(c.midle());
+            }
+
+            if (tmp < 0) {
+                c.setA(c.getMin());
+                c.setB(c.midle());
+            }
+
+            if (Math.abs(tmp) < eps) {
+                answs.add(c.midle());
+                return true;
+            }
+        }
+        return  false;
+    }*/
+
+    private boolean locale(double[] a, Cut c) {
+        if(calc(a, c.getB()) * calc(a, c.getA()) > 0) return false;
+        while (c.dist() > eps) {
+            double tmp = calc(a, c.midle());
+
+            if (tmp < 0) {
+                c.setB(c.getMax());
+                c.setA(c.midle());
+            }
+
+            if (tmp > 0) {
+                c.setA(c.getMin());
+                c.setB(c.midle());
+            }
+
+            if (Math.abs(tmp) < eps) {
+                answs.add(c.midle());
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    // Ищет точки в полученных отрезках или разбивает на более мелкие отрезки
     private void find_answs(double[] a){
-        for(Cut cut : cuts) {
-
-            int iter = 1000000;
+        for (Cut cut : cuts) {
             Cut c;
-
-            for (int i = 0; i < iter; i++) {
-                if (cut.getMax() == POSITIVE_INFINITY)
-                    c = new Cut(cut.getMin() + step * i, cut.getMin() + step * (i + 1));
-                else
-                    c = new Cut(cut.getMax() - step * (i + 1), cut.getMax() - step * i);
-
-                while (c.dist() > eps) {
-                    double tmp = calc(a, c.midle());
-
-                    if (tmp > 0) {
-                        c.setB(cut.getMax());
-                        c.setA(cut.midle());
-                    }
-
-                    if (tmp < 0) {
-                        c.setA(cut.getMin());
-                        c.setB(cut.midle());
-                    }
-
-                    if (Math.abs(tmp) < eps) {
-                        if(Math.abs(calc(a, tmp)) < eps)
-                            answs.add(tmp);
+            if (cut.getMin() == NEGATIVE_INFINITY || cut.getMax() == POSITIVE_INFINITY) {
+                int iter = 10000000;
+                boolean check = false;
+                for (int i = 0; i < iter; i++) {
+                    if (cut.getMax() == POSITIVE_INFINITY)
+                        c = new Cut(cut.getMin() + step * i, cut.getMin() + step * (i + 1));
+                    else
+                        c = new Cut(cut.getMax() - step * (i + 1), cut.getMax() - step * i);
+                    if (locale(a, c) == true){
+                        check = true;
                         break;
                     }
                 }
+                if (check == false)
+                    answ_cuts.add(cut);
+            } else {
+                if (locale(a, cut) == false)
+                    answ_cuts.add(cut);
             }
         }
-
     }
 
+
+    // Считает значение функции в точке
     private double calc(double[] a, double x){
         double req = 0;
 
@@ -144,8 +191,10 @@ public class Dichotomy {
         return req;
     }
 
+    //Дискременант
     private double D (double[] a){ return a[1] * a[1] - 4 * a[0] * a[2]; }
 
+    // Производная
     private double[] dif(double[] a){
         double[] b = new double[a.length - 1];
         for(int i = 0; i < a.length - 1; i++)
