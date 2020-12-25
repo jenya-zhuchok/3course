@@ -1,0 +1,155 @@
+import rational;
+import flowstructs;
+
+export{
+    ruleSimplification(e: Expr) -> Expr;
+}
+
+MyRule(template: Expr, replacement: Expr);
+
+model: [[string]] = [
+["((x - z) + (y + z))" ,"(x + y)"],
+["((x + z) + (y - z))" , "(x + y)"],
+["(x + x)" , "(2 * x)"],
+["(- (- x))" , "x"],
+["(x + 0)" , "x"],
+["(x - 0)" , "x"],
+["(x - x)" , "0"],
+["(x + (-x))" , "0"],
+["((-x) + x)" , "0"],
+["(x * 0)" , "0"],
+["(x * 1)" , "x"],
+["(0 + x)" , "x"],
+["(0 * x)" , "0"],
+["(1 * x)" , "x"],
+["(x * (-1))" , "(-x)"],
+["((-1) * x)" , "(-x)"],
+["(x / x)" , "1"],
+["(0 / x)" , "0"],
+["((x * z) + (y * z))" , "((x + y) * z)"],
+["((x + y) * z)" , "((x * z) + (y * z))"],
+["((x * z) + (y * z))" , "((x + y) * z)"],
+["((x + y) * z)" , "((x * z) + (y * z))"],
+["((x + y) + z)" , "(x + (y + z))"],
+["((x * y) * z)" , "(x * (y * z))"],
+["((x * x) - (y * y))" , "((x - y) * (x + y))"],
+["((x - y) * (x + y))" , "((x * x) - (y * y))"],
+["((x - y) * (x - y))" , "(((x * x) + (y * y)) - (2 * (x * y)))"],
+["(((x * x) + (y * y)) - (2 * (x * y)))" , "((x - y) * (x - y))"],
+["((x + y) * (x + y))" , "(((x * x) + (y * y)) + (2 * (x * y)))"],
+["(((x * x) + (y * y)) + (2 * (x * y)))" , "((x + y) * (x + y))"]
+];
+
+
+parsingRules() -> [MyRule] {
+
+    map(map(model, \pair -> 
+        map(pair, \str -> Parse(str))),
+             \rule -> MyRule(rule[0], rule[1]))
+}
+
+
+pairCompair(el: Expr, tl: Expr, er: Expr, tr: Expr, tree: Tree<string, Expr>) -> Maybe<Tree<string, Expr>>{
+    switch(compair(el, tl, tree)){
+
+        Some(s):    compair(er, tr, s)
+    
+        None():     None()
+    }
+}
+
+
+compair(expr: Expr, template: Expr, tree: Tree<string, Expr>) -> Maybe<Tree<string, Expr>> {
+
+    switch(template: Expr){
+       
+        IntConst(c):    if(expr == IntConst(c))     Some(tree)
+                        else None()
+
+        Rational(l, r): if(expr == Rational(l, r))  Some(tree)
+                        else None()
+        
+        Mul(tl, tr):    switch(expr: Expr){
+                            Mul(el, er):    pairCompair(el, tl, er, tr, tree)
+                            
+                            default:        None()
+                        }
+
+        Add(tl, tr):    switch(expr: Expr){
+                            Add(el, er):    pairCompair(el, tl, er, tr, tree)
+                            
+                            default:        None()
+                        }
+    
+        Sub(tl, tr):    switch(expr: Expr){
+                            Sub(el, er):    pairCompair(el, tl, er, tr, tree)
+                           
+                            default:        None()
+                        }
+            
+        Div(tl, tr):    switch(expr: Expr){
+                            Div(el, er):    pairCompair(el, tl, er, tr, tree)
+                            
+                            default:        None()
+                        }
+
+        Neg(tn):        switch(expr: Expr){
+                            Neg(en):    compair(en, tn, tree)
+                            
+                            default:    None()
+                        }
+                        
+        Var(s):         switch(lookupTree(tree, s)) {
+				            Some(e):    if (expr == e)   Some(tree) 
+                                        else None()
+                			
+                            None():     Some(setTree(tree, s, expr))
+                            
+                        }
+    }
+}
+
+
+
+conversion(e: Expr, tree: Tree<string, Expr>) -> Expr {
+	switch (e) {
+        IntConst(c):    e;
+        Rational(l, r): e;
+        Mul(l, r):      Mul(conversion(l, tree), conversion(r, tree));
+        Add(l, r):      Add(conversion(l, tree), conversion(r, tree));
+        Sub(l, r):      Sub(conversion(l, tree), conversion(r, tree));
+        Div(l, r):      Div(conversion(l, tree), conversion(r, tree));
+        Neg(v):         Neg(conversion(v, tree));
+        Var(n):         lookupTreeDef(tree, n, e);
+	}
+}
+
+cost(e: Expr) -> int {
+	switch(e) {
+        IntConst(c):    1;
+        Rational(l, r): 1;
+        Mul(l, r):      cost(l) + cost(r);
+        Add(l, r):      cost(l) + cost(r);
+		Sub(l, r):      cost(l) + cost(r);
+		Div(l, r):      cost(l) + cost(r);
+		Neg(v):         1 + cost(v);
+		Var(n):         1;
+	}
+}
+
+ruleSimplification(expr: Expr) -> Expr{
+
+    rules = parsingRules();
+
+    fold(rules, expr, \e,r ->
+        switch(compair(e, r.template, makeTree()))
+        {
+            Some(s):{
+                variant = conversion(r.replacement, s);
+                if(cost(variant) < cost(e)) ruleSimplification(variant)
+                else e
+            }
+
+            None(): e
+        })
+}

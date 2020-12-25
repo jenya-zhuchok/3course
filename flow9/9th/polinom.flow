@@ -1,0 +1,59 @@
+import rational;
+
+export{
+    e2div(e: Expr) -> Div;
+    PrintDiv(e: Expr) -> string;
+}
+
+
+
+PrintDiv(e: Expr) -> string {
+    switch (e : Expr) {
+        IntConst(c):Print(IntConst(c));
+        Rational(i,f): Print(Rational(i,f));
+        Neg(c): Print(Neg(c));
+        Add(l,r): Print(Add(l,r));
+        Sub(l,r): Print(Sub(l,r));
+        Mul(l,r): Print(Mul(l,r));
+        Div(l,r): 
+            if(r == IntConst(1))
+                Print(l)
+            else
+                Print(Div(l,r)); 
+        Var(s): Print(Var(s));
+    }
+}
+
+
+divAdd(ldiv: Div, rdiv: Div) -> Div {
+    Div(Add(Mul(ldiv.l, rdiv.r),Mul(rdiv.l, ldiv.r)), Mul(ldiv.r, rdiv.r));
+}
+
+divSub(ldiv: Div, rdiv: Div) -> Div {
+    Div(Sub(Mul(ldiv.l, rdiv.r),Mul(rdiv.l, ldiv.r)), Mul(ldiv.r, rdiv.r));
+}
+
+divMul(ldiv: Div, rdiv: Div) -> Div {
+    Div(Mul(ldiv.l, rdiv.l), Mul(ldiv.r, rdiv.r));
+}
+
+divDiv(ldiv: Div, rdiv: Div) -> Div{
+    Div(Mul(ldiv.l, rdiv.r), Mul(ldiv.r, rdiv.l));
+}
+
+divNeg(div: Div) -> Div{
+    Div(Neg(div.l), div.r);
+}
+
+e2div(e: Expr) -> Div{
+    switch (e : Expr){
+        IntConst(c):  Div(IntConst(c), IntConst(1)) ;
+        Rational(l, r): Div(IntConst(l), IntConst(r));
+        Neg(c):  divNeg(e2div(c));
+        Add(l,r):   divAdd(e2div(l), e2div(r));
+        Sub(l,r):   divSub(e2div(l), e2div(r));
+        Mul(l,r):   divMul(e2div(l), e2div(r));
+        Div(l,r):   divDiv(e2div(l), e2div(r));
+        Var(s): Div(Var(s), IntConst(1))
+    }
+}

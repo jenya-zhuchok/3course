@@ -1,0 +1,32 @@
+
+import rational;
+import polinom;
+import rule;
+
+
+
+foo(str: string, tree:Tree<string, int>) -> void{
+    
+    p_exp = Parse(str);
+        
+    r_exp = ruleSimplification(p_exp);
+    println(Print(p_exp));
+    println(Print(r_exp));
+
+    println("")
+
+}
+
+
+main(){
+
+    tree = setTree(makeTree(), "x", 4);
+    //tree2 = setTree(makeTree(), "a", 2);
+    //tree = setTree(tree2, "b", 7);
+    
+    foo("(-(- ((5  * 1) - (3 / (x + (-1)) ))))", tree);
+    foo("((x * 1) * 1)", tree);
+    foo("(((x * x) + (4 * 4)) - (2 * (x * 4)))", tree);
+    
+    quit(0);
+}

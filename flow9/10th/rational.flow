@@ -4,16 +4,22 @@ import lingo/pegcode/driver;
 import math/math;
 import ds/tree;
 
+export{
+    Expr ::= IntConst, Rational, Neg, Var, Add, Sub, Mul, Div;
+    IntConst: (v: int);
+    Rational: (i: int, d:int);
+    Neg: (value: Expr);
+    Var: (value: string);
+    Add: (l: Expr, r: Expr);
+    Sub: (l: Expr, r: Expr);
+    Mul: (l: Expr, r: Expr); 
+    Div: (l: Expr, r: Expr);
 
-Expr ::= IntConst, Rational, Neg, Var, Add, Sub, Mul, Div;
-IntConst: (v: int);
-Rational: (i: int, d:int);
-Neg: (value: Expr);
-Var: (value: string);
-Add: (l: Expr, r: Expr);
-Sub: (l: Expr, r: Expr);
-Mul: (l: Expr, r: Expr); 
-Div: (l: Expr, r: Expr);
+    Parse(s: string) -> Expr;
+    Calc(e:Expr, tree:Tree<string, int>)-> Maybe <Rational>;
+    Print(e:Expr)->string;
+    Simplify(e: Expr) -> Expr;
+}
 
 
 Parse(s: string) -> Expr {
@@ -173,31 +179,4 @@ Simplify(e: Expr) -> Expr{
         Rational(i,f): SimpleRat(i, f);
         Var(v): Var(v); 
     }
-}
-
-main(){
-
-    tree = setTree(makeTree(), "x", 1);
-  
-    exp = "(-(- ((5  * 1) - (3 / (x + (-1)) ))))";
-
-//    exp = "((((1 * 0) + ((6- 6) * x))+ (4/ 1)) - (((x / 2)+ (0 * 3)) - 1))"
-    p_exp = Parse(exp);
-    println(Print(p_exp));
-    sp_exp = Simplify(p_exp);
-    println(Print(sp_exp));
-
-        switch(Calc(p_exp, tree))
-    {
-        None() : println("Wrong!");
-        Some(v) : println(Print(v))
-    }
-
-        switch(Calc(sp_exp, tree))
-    {
-        None() : println("Wrong!");
-        Some(v) : println(Print(v))
-    }
-
-    quit(0);
 }
