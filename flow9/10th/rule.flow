@@ -2,7 +2,9 @@ import rational;
 import flowstructs;
 
 export{
-    ruleSimplification(e: Expr) -> Expr;
+    MyRule(template: Expr, replacement: Expr);
+    parsingRules() -> [MyRule];
+    ruleSimplification(e: Expr, rules:[MyRule]) -> Expr;
 }
 
 MyRule(template: Expr, replacement: Expr);
@@ -137,19 +139,32 @@ cost(e: Expr) -> int {
 	}
 }
 
-ruleSimplification(expr: Expr) -> Expr{
+secondStep(e: Expr, rules:[MyRule]) -> Expr{
+    switch(e){
+        IntConst(c):    e
+        Rational(l, r): e
+        Mul(l, r):      Mul(ruleSimplification(l, rules), ruleSimplification(r, rules))
+        Add(l, r):      Add(ruleSimplification(l, rules), ruleSimplification(r, rules))
+		Sub(l, r):      Sub(ruleSimplification(l, rules), ruleSimplification(r, rules))
+		Div(l, r):      Div(ruleSimplification(l, rules), ruleSimplification(r, rules))
+		Neg(v):         Neg(ruleSimplification(v, rules))
+		Var(n):         e
+	}
+}
 
-    rules = parsingRules();
+
+ruleSimplification(expr: Expr, rules: [MyRule]) -> Expr{
 
     fold(rules, expr, \e,r ->
         switch(compair(e, r.template, makeTree()))
         {
             Some(s):{
                 variant = conversion(r.replacement, s);
-                if(cost(variant) < cost(e)) ruleSimplification(variant)
+                if(cost(variant) < cost(e)) ruleSimplification(variant, rules)
                 else e
             }
 
+            //None(): secondStep(e, rules)
             None(): e
         })
 }
