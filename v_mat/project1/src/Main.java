@@ -19,11 +19,11 @@ public class Main {
 
 //
     public static void main(String[] args) {
-        double[] a = new double[]{1, -6, 11, -6};
+        double[] a = new double[]{1, -100, 1, -100};
         if (a.length != 4) return;
 
         print(a);
-        Dichotomy method = new Dichotomy(a,0.00001, 1);
+        Dichotomy method = new Dichotomy(a,0.00001, 2);
         method.print_answers();
 
     }

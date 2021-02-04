@@ -25,7 +25,7 @@ public class Integral {
 
     private double trapeze()
     {
-        double h = (a + b) / (n * 3);
+        double h = (a + b) / n;
         double res = 0;
         double x0 = a;
         double x1= a + h;
@@ -63,7 +63,7 @@ public class Integral {
         System.out.println("Inaccuracy: " + inac);
         System.out.println("Difference: " + diff);
 
-        System.out.println("??: " +Math.abs(diff - inac));
+       // System.out.println("??: " +Math.abs(diff - inac));
 
 
     }

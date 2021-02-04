@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 public class MyThread implements Runnable {
@@ -13,7 +14,7 @@ public class MyThread implements Runnable {
 
     }
 
-    MyThread(String name, int percents, int port, InetSocketAddress parentIneSocAddr){
+    MyThread(String name, int percents, int port, InetSocketAddress parentIneSocAddr) throws IOException {
         node = new Node(name, percents,  port, parentIneSocAddr);
     }
 

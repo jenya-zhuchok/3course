@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -10,13 +11,14 @@ public class Node {
     private ByteBuffer sendBuffer;
     private DatagramChannel dc;
     private HashMap<InetSocketAddress, Long> aliveNeighbours = new HashMap<>();
-    private LinkedList<Message> keepNodeMessages = new LinkedList<>(); //
+    private LinkedList<Message> keepNodeMessages = new LinkedList<>();
     private HashSet<UUID> uuids = new HashSet<>(); //для полученных сообщений
     private DatagramPacket dp;
     private ByteBuffer recvBuffer;
     private String name;
     private int percents, port;
 
+    private final byte TEXT_ACK = 3;
     private final byte TEXT_MSG = 2;
     private final byte MSG_HELLO = 0;
     private final byte MSG_ACK = 1;
@@ -27,21 +29,41 @@ public class Node {
     //2 - текстовое сообщение от другого узла
     //3 - подтверждение на текстовое сообщение от другого узла
 
-    public Node(String name, int percents, int port, InetSocketAddress parent){
+    private void log(InetSocketAddress parent, InetSocketAddress praParent){
+        System.out.println("______________________________________");
+
+        if (parent==null){
+            System.out.println("MyParent == null");
+        }
+        else
+            System.out.println("MyParent port = "+ parent.getPort() +" MyParent address = " +  parent.getAddress());
+
+        if(praParent==null)
+            System.out.println("praParent==null");
+        else
+            System.out.println("PraParent port = "+ praParent.getPort() +" PraParent address = " + praParent.getAddress());
+        System.out.println("______________________________________");
+    }
+
+    public Node(String name, int percents, int port, InetSocketAddress parent) throws IOException {
         this.name = name;
         this.percents = percents;
         this.port = port;
         this.parent = parent;
+
+        isa = new InetSocketAddress(port);
+        dc = DatagramChannel.open();
+        dc.bind(isa);
+
+        sendBuffer = ByteBuffer.allocate(4096);
+
     }
 
     public void start() throws IOException  {
-        isa = new InetSocketAddress(port);
-        dc = DatagramChannel.open();
+
         DatagramSocket s = dc.socket();
         s.setSoTimeout(1000);
-        dc.bind(isa);
-        this.parent = parent;
-        sendBuffer = ByteBuffer.allocate(4096);
+
         byte[] recvBuffer_ = new byte[4096];
         recvBuffer = ByteBuffer.wrap(recvBuffer_);
 
@@ -49,12 +71,16 @@ public class Node {
         praParent = null; //предок родителя
         long t1;
 
+
         while (true) {
+
             sendMsgToParent();
             sendAllTextMsgs();
             removeWhoNotRequest();
             t1 = System.currentTimeMillis();
+
             //пакет -> тип сообщение, UUID, размер сообщения, сообщение
+
             while (System.currentTimeMillis() < t1 + 2000) {
                 try {
                     dp = new DatagramPacket(recvBuffer_, recvBuffer_.length);
@@ -62,32 +88,28 @@ public class Node {
                     recvBuffer.clear();
                     msgType = recvBuffer.get();
                     switch (msgType){
-                        case MSG_HELLO:
-                            System.out.println("Получено служебное сообщение от потомка");
-                            //посылаем ответ,в котором есть информация про заместителя(в случае потери родителя)
+                        case MSG_HELLO: // получаем информацию от потомка
+                            //System.out.println("Received a message from a descendant");
+                            //отправляем сообщение с информацией о родителе
                             collectParentData();
-                            sendResponse();
                             rememberAliveNeighbour();
                             break;
-                        case MSG_ACK:
-                            System.out.println("Получено служебное сообщение от предка");
-                            //replacer = ...  из датаграмм пакета достать заместителя и отправить новый датаграмм пакет с данными о нем
+                        case MSG_ACK: // получаем информацию от родителя про прародителя
+                            //System.out.println("Received a message from an ancestor");
                             praParent = getPraParent();
-                            if(praParent==null)
-                                System.out.print("praparent==null\n");
-                            else
-                                System.out.printf("PraParent port = %d, PraParent adress = %s\n", praParent.getPort(),praParent.getAddress());
+                            //log(parent, praParent);
                             rememberAliveNeighbour();
                             break;
-                        case 2:
-                            // System.out.println("Получено текстовое сообщение от узла");
+                        case TEXT_MSG: // получаем текстовое сообщение
                             double num = Math.random()*100;
                             if(num > percents){
+                                //System.out.println("GET");
                                 keepReceivedMsg();
+                                msgRequest();
                             }
                             break;
-                        case 3:
-                            // System.out.println("Пришло подтверждение от другого узла, что текстовое сообщение получено");
+                        case TEXT_ACK: // получаем подтверждение о получении сообщения
+                            //System.out.println("OK");
                             removeAcceptedMsg();
                     }
                 } catch (SocketTimeoutException e) {
@@ -97,16 +119,17 @@ public class Node {
             }
         }
     }
+
     private void sendMsgToParent() throws IOException{
-        if (parent!=null) {
-            sendBuffer.clear();
-            sendBuffer.put(MSG_HELLO);
-            sendBuffer.flip(); //указатель в конце
-            //отправляем сообщение родителю и затем принимаем от него ответ, в это время может прийти сообщ от других узлов
-            dc.send(sendBuffer, parent);
-            // System.out.println("Отправили служебное сообщение предку");
-        }
+        if (parent==null) return;
+
+        sendBuffer.clear();
+        sendBuffer.put(MSG_HELLO);
+        sendBuffer.flip(); //указатель в конце
+        //отправляем сообщение родителю и затем принимаем от него ответ, в это время может прийти сообщ от других узлов
+        dc.send(sendBuffer, parent);
     }
+
     private void sendAllTextMsgs() throws IOException{
         for(Message m : keepNodeMessages)
         {
@@ -120,8 +143,12 @@ public class Node {
             dc.send(sendBuffer, m.inetSocketAddress);
         }
     }
+
     private void removeWhoNotRequest(){
         //удаляем соседей, которые давно не отвечали
+
+        ArrayList<InetSocketAddress> inetSocketAddressesDied = new ArrayList<InetSocketAddress>();
+
         for (Map.Entry<InetSocketAddress, Long> entry : aliveNeighbours.entrySet()) {
             if((System.currentTimeMillis() - entry.getValue()) > 8000) {
                 if (entry.getKey().equals(parent)) {
@@ -129,9 +156,13 @@ public class Node {
                     if(praParent!=null)
                         aliveNeighbours.put(praParent, System.currentTimeMillis());
                 }
-                aliveNeighbours.remove(entry.getKey());
+
+                inetSocketAddressesDied.add(entry.getKey());
             }
         }
+
+        for (InetSocketAddress elem: inetSocketAddressesDied)
+            aliveNeighbours.remove(elem);
     }
 
     private InetSocketAddress getPraParent() throws UnknownHostException {
@@ -143,6 +174,15 @@ public class Node {
         recvBuffer.get(recvAddr);
         return new InetSocketAddress(InetAddress.getByAddress(recvAddr), parentPort);
     }
+
+    private void msgRequest() throws IOException {
+        sendBuffer.clear();
+        sendBuffer.put(TEXT_ACK);
+        sendBuffer.flip();
+        sendResponse();
+    }
+
+
     private void keepReceivedMsg(){
         int msg_size;
         byte[] recvMsg;
@@ -165,20 +205,12 @@ public class Node {
             System.out.println(msg);
         }
     }
-    private void collectParentData(){
+    private void collectParentData() throws IOException {
         sendBuffer.clear();
         sendBuffer.put(MSG_ACK);
 
-        InetSocketAddress MyParent = null; //предок текущего узла или тот, кто его заменяет
-        if(parent == null) {
-            for (Map.Entry<InetSocketAddress, Long> entry : aliveNeighbours.entrySet()) {
-                MyParent = entry.getKey();
-                break;
+        InetSocketAddress MyParent = parent;
 
-            }
-        } else {
-            MyParent = parent;
-        }
         if (MyParent==null || MyParent.equals(dp.getSocketAddress())){
             sendBuffer.putInt(0);
         } else {
@@ -187,12 +219,10 @@ public class Node {
             sendBuffer.put(MyParent.getAddress().getAddress());
         }
         sendBuffer.flip();
-        if (MyParent==null){
-            System.out.print("Myparent == null\n");
-        }
-        else
-            System.out.printf("Myparent port = %d, MyParent adress = %s\n", MyParent.getPort(),MyParent.getAddress());
+        sendResponse();
+        //log(MyParent, praParent);
     }
+
     private synchronized void removeAcceptedMsg(){
         long part1 = recvBuffer.getLong();
         long part2 = recvBuffer.getLong();
@@ -209,6 +239,7 @@ public class Node {
     private synchronized void rememberAliveNeighbour(){
         aliveNeighbours.put((InetSocketAddress) dp.getSocketAddress(), System.currentTimeMillis());
     }
+
     private void sendResponse() throws IOException {
         dc.send(sendBuffer, dp.getSocketAddress());
     }
@@ -220,4 +251,3 @@ public class Node {
         }
     }
 }
-

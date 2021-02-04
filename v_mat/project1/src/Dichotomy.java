@@ -109,7 +109,7 @@ public class Dichotomy {
 
     // Ищет точки в полученных ЛОКАЛЬНЫХ отрезках
     private boolean locale(double[] a, Cut c) {
-        if(calc(a, c.getB()) * calc(a, c.getA()) > 0) return false;
+       // if(calc(a, c.getB()) * calc(a, c.getA()) > 0) return false;
         while (c.dist() > eps) {
             double tmp = calc(a, c.midle());
 

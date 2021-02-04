@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="lab4.snakes.controller.NewGameController">
+   <children>
+      <Label layoutX="79.0" layoutY="14.0" text="Параметры новой игры:" />
+      <Label layoutX="59.0" layoutY="72.0" text="Ширина поля:" />
+      <TextField fx:id="width" layoutX="296.0" layoutY="67.0" text="" />
+      <Label layoutX="59.0" layoutY="103.0" text="Высота поля:" />
+      <TextField fx:id="height" layoutX="296.0" layoutY="98.0" text="" />
+      <Label layoutX="59.0" layoutY="135.0" text="Базовое количество еды:" />
+      <TextField fx:id="foodStatic" layoutX="296.0" layoutY="130.0" />
+      <Label layoutX="59.0" layoutY="168.0" text="Количество доп еды на игрока:" />
+      <TextField fx:id="foodPerPlayer" layoutX="296.0" layoutY="163.0" />
+      <Label layoutX="59.0" layoutY="204.0" text="Игровой тик (мс):" />
+      <TextField fx:id="stateDelayMs" layoutX="296.0" layoutY="199.0" />
+      <Label layoutX="59.0" layoutY="238.0" text="Вероятность дропа (%):" />
+      <TextField fx:id="deadFoodProb" layoutX="296.0" layoutY="233.0" />
+      <Label layoutX="59.0" layoutY="330.0" text="Порт для подключения:" />
+      <TextField fx:id="connectionPort" layoutX="296.0" layoutY="325.0" />
+      <Label layoutX="59.0" layoutY="269.0" text="Периодичность пингов (мс):" />
+      <TextField fx:id="pingDelayMs" layoutX="296.0" layoutY="264.0" />
+      <Label layoutX="59.0" layoutY="299.0" text="Таймаут отваливания (мс):" />
+      <TextField fx:id="nodeTimeoutMs" layoutX="296.0" layoutY="294.0" />
+      <Pane layoutX="162.0" layoutY="351.0" prefHeight="25.0" prefWidth="218.0">
+         <children>
+            <Pane layoutX="-3.0" layoutY="6.0" prefHeight="25.0" prefWidth="218.0">
+      
+               <children>
+                  <Button fx:id="createNewGame" text="Создать игру" />
+                  <Button fx:id="backToMain" layoutX="162.0" text="Назад" />
+               </children>
+            </Pane>
+         </children></Pane>
+      <Label layoutX="61.0" layoutY="38.0" text="Имя игрока:" />
+      <TextField fx:id="name" layoutX="296.0" layoutY="34.0" />
+   </children>
+</AnchorPane>

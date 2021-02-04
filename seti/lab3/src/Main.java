@@ -18,11 +18,6 @@ public class Main{
 
         while(true){
             String msg = in.nextLine();
-            /*try{
-                Thread.sleep(2000);
-            }catch (InterruptedException e){
-                e.printStackTrace();
-            }*/
             myThread.getNode().getMsg(args[0].toString() + ": " + msg);
         }
     }
