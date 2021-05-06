@@ -9,6 +9,7 @@ public class Transition {
     private Node from;
     private Node to;
     private Character value;
+    private boolean isBack = false;
 
 
     public Transition(Character c){
@@ -25,18 +26,13 @@ public class Transition {
         link(from, to, value);
     }
 
-    static public Transition loop(Character c){
-        Node n = new Node();
-        return new Transition(n, n, c);
+    public void back(){
+        isBack = true;
     }
 
     private void link (@NotNull Node from, @NotNull Node to, Character value){
         from.addOut(value);
         to.addIn(value);
-    }
-
-    static public void bind(@NotNull Transition first, @NotNull Transition second){
-        Node.unite(first.getTo(), second.getFrom());
     }
 
     static public ArrayList<Node> getStatements(ArrayList <Transition> transitions){
@@ -86,6 +82,6 @@ public class Transition {
     }
 
     public boolean isLoop() {
-        return  (from == to);
+        return  isBack;
     }
 }

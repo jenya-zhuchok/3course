@@ -31,35 +31,6 @@ public class Utilit {
     }
 
 
-    static public void printResult(FiniteAutomaton fa){
-        System.out.print("Σ = { ");
-        for(Character c: fa.getAlphabet())
-            System.out.print(c + " ");
-        System.out.println("}");
-
-        //----------------------------------------------------------//
-        ArrayList<Node> statements = fa.getStatements();
-        System.out.print("Q = { ");
-        int i = 0;
-        for(Node n: statements) {
-            System.out.print("q" + i + " ");
-            i++;
-        }
-        System.out.println("}");
-        //----------------------------------------------------------//
-
-        System.out.println("δ = {");
-        //int i = 0;
-        for(Transition t: fa.getTransitions()) {
-            int from = statements.indexOf(t.getFrom());
-            int to = statements.indexOf(t.getTo());
-            Character value = t.getValue();
-            System.out.println("("+value + ", "+"q"+from+ ")-> q"+to);
-        }
-        System.out.println("}");
-
-    }
-
     static public void printResult(Automat fa){
         System.out.print("Σ = { ");
         for(Character c: fa.getAlphabet())
