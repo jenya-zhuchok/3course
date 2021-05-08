@@ -1,7 +1,5 @@
 package nsu.ta.rodchenko;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
 
 public class Transition {
@@ -30,7 +28,7 @@ public class Transition {
         isBack = true;
     }
 
-    private void link (@NotNull Node from, @NotNull Node to, Character value){
+    private void link ( Node from,  Node to, Character value){
         from.addOut(value);
         to.addIn(value);
     }

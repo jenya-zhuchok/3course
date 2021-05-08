@@ -1,7 +1,5 @@
 package nsu.ta.rodchenko;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -108,7 +106,7 @@ public class Automat {
         return new Automat(String.valueOf(dst));
     }// ok
 
-    private void wasGetPlusSymbol(@NotNull Automat a){ //(a+b)*
+    private void wasGetPlusSymbol(Automat a){ //(a+b)*
         alphabet.addAll(a.alphabet);
         transitions.addAll(a.transitions);
 
@@ -141,7 +139,7 @@ public class Automat {
         refreshStatement();
     }
 
-    private void   wasGetSubExp(@NotNull Automat subExpr){
+    private void   wasGetSubExp( Automat subExpr){
         alphabet.addAll(subExpr.alphabet);
         lastPair = subExpr.lastPair;
         concat(subExpr.transitions);
