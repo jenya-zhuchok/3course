@@ -21,16 +21,13 @@ public class HomGrammar {
     public void ks2hom(){
         System.out.println("********************************");
 
-        if(ks_grammar.isEmptyLanguage()){
-            System.out.print("language is empty");
-            return;
-        }
-
         System.out.println("Your rules:");
         ks_grammar.printRules();
         System.out.println("********************************");
 
         System.out.println("alphabet:");
+        if(ks_grammar.isEmptyLanguage())
+            System.out.print("language is empty");
         ks_grammar.printAlphabet();
         System.out.println("********************************");
 
@@ -42,7 +39,6 @@ public class HomGrammar {
     }
 
     private void fistStep(){
-        if(ks_grammar.isEmptyLanguage()) return;
 
         ArrayList<Rule> rules = ks_grammar.getRules();
         ArrayList<Rule> forgot = new ArrayList<>();

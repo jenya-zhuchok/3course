@@ -38,10 +38,6 @@ public class Grammar {
     }
 
 
-    public HashSet<Character> getAlphabet() {
-        return alphabet;
-    }
-
     public boolean isEmptyLanguage(){
         return alphabet.size() <= 0;
     }

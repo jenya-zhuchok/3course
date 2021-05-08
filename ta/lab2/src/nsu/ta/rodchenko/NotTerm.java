@@ -6,8 +6,4 @@ public class NotTerm extends Literal {
         super(Character.toUpperCase(c));
     }
 
-    public NotTerm(char c, int n){
-        super(Character.toUpperCase(c));
-        setNum(n);
-    }
 }

@@ -14,7 +14,7 @@ public abstract class Literal {
     public String toString() {
         String str = String.valueOf(c);
         if (num >= 0)
-            return str + String.valueOf(num);
+            return str + num;
 
         return str;
     }
