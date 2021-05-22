@@ -6,43 +6,33 @@ import java.util.HashSet;
 public class Grammar {
 
     ArrayList<Rule> rules = new ArrayList<>();
-    HashSet<Character> alphabet = new HashSet<>();
-
-
-    public Grammar(){}
+    HashSet<Character> termAlphabet = new HashSet<>();
+    HashSet<Character> notTermAlphabet = new HashSet<>();
+    Character startSymbol;
 
     public Grammar(ArrayList<Rule> rules){
         this.rules = rules;
         lookAlphabet();
-    }
-
-    public void addRule(Rule r){
-        rules.add(r);
-        lookAlphabet();
-    }
-
-    public void printRules(){
-        for(Rule r: rules)
-            r.print();
-    }
-
-    public void printAlphabet(){
-        for(Character c: alphabet)
-            System.out.print(c + " ");
-        System.out.println();
+        startSymbol = rules.get(0).getLeft(); // небезопасно
     }
 
     public void lookAlphabet(){
         for(Rule r: rules)
-            alphabet.addAll(r.getAllTerms());
-    }
+            termAlphabet.addAll(r.getAllTerms());
+        for(Rule r: rules)
+            notTermAlphabet.addAll(r.getAllNotTerms());
 
-
-    public boolean isEmptyLanguage(){
-        return alphabet.size() <= 0;
     }
 
     public ArrayList<Rule> getRules() {
         return rules;
+    }
+
+    public HashSet<Character> getTermAlphabet() {
+        return termAlphabet;
+    }
+
+    public Character getStartSymbol() {
+        return startSymbol;
     }
 }

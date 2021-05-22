@@ -1,23 +1,28 @@
 package nsu.ta.rodchenko;
 
-import nsu.ta.rodchenko.literals.Literal;
-import nsu.ta.rodchenko.literals.NotTerm;
-import nsu.ta.rodchenko.literals.Term;
-
 import java.util.ArrayList;
 
 public class Parser {
 
-    static public boolean isRightRight(String str){
-        for(int i = 0; i < str.length(); i++){
-            if(!Character.isAlphabetic(str.charAt(i)))
-                if(str.charAt(i) != ' ') return false;
+    static public boolean isAllowed(String str) {
+        for (int i = 0; i < str.length(); i++) {
+            if (!Character.isAlphabetic(str.charAt(i)))
+                switch (str.charAt(i)) {
+                    case ' ':
+                    case '+':
+                    case '(':
+                    case ')':
+                    case '*':
+                        break;
+                    default:
+                        return false;
+                }
         }
         return true;
     }
 
     static public boolean isRightLeft(String str){
-        /*if(!isRightRight(str)) return false;
+        if(!isAllowed(str)) return false;
 
         int count = 0;
         for(int i = 0; i < str.length(); i++){
@@ -28,7 +33,7 @@ public class Parser {
             }
         }
 
-        if(count == 0) return false;*/
+        if(count == 0) return false;
 
         return true;
     }
@@ -50,8 +55,6 @@ public class Parser {
         return rights;
     }
 
-
-
     static public ArrayList<Rule> parserRules(String str){
         ArrayList<Rule> rules = new ArrayList<>();
             for(int i = 0; i < str.length() - 1; i++){
@@ -64,13 +67,13 @@ public class Parser {
                 }
 
                 if(i + 1 > str.length() - 1) {
-                    rules.add(new Rule(parsLiterals(left), parsLiterals("")));
+                    rules.add(new Rule(parsLeft(left), null));
                     return rules;
                 }
 
                 for(String s : getAllRights(str.substring(i + 2))){
-                    if(isRightRight(s))
-                        rules.add(new Rule(parsLiterals(left), parsLiterals(s)));
+                    if(isAllowed(s))
+                        rules.add(new Rule(parsLeft(left), parsRight(s)));
                     else
                         System.out.println("The rule \"" + left +" -> " + s + "\" is not correct. It will be not used");
 
@@ -80,22 +83,19 @@ public class Parser {
         return rules;
     }
 
-    static public ArrayList<Literal> parsLiterals(String str){
-        ArrayList<Literal> literals = new ArrayList<>();
-        for(int i = 0; i < str.length(); i++){
-            if(str.charAt(i) == ' ') continue;
-            if(Character.isAlphabetic(str.charAt(i)))
-                if(Character.isUpperCase(str.charAt(i)))
-                    literals.add(new NotTerm(str.charAt(i)));
-                else
-                    literals.add(new Term(str.charAt(i)));
-            if(Character.isDigit(str.charAt(i))) {
-                int j;
-                for(j = 0; j < str.length(); j++)
-                    if(!Character.isDigit(str.charAt(i))) break;
-                literals.get(literals.size() - 1).setNum(Integer.parseInt(str.substring(i,j)));
-            }
+    static public Character parsLeft(String str){
+        String c = str.trim();
+        if (c.length() != 1) return null;
+        return c.charAt(0);
+    }
+
+    static public ArrayList<Character> parsRight(String str){
+        ArrayList<Character> characters = new ArrayList<>();
+        String s = str.trim();
+        for(int i = 0; i < s.length(); i++){
+            if(s.charAt(i) != ' ')
+                characters.add(s.charAt(i));
         }
-        return literals;
+        return characters;
     }
 }
